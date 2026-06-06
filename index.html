@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PrankPDF</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:        #0a0a0a;
+  --surface:   #111111;
+  --surface-2: #1a1a1a;
+  --border:    #222222;
+  --border-2:  #2e2e2e;
+  --text-1:    #ededed;
+  --text-2:    #888888;
+  --text-3:    #555555;
+  --accent:    #ededed;
+  --green:     #22c55e;
+  --red:       #ef4444;
+  --radius-sm: 8px;
+  --radius:    10px;
+  --radius-lg: 14px;
+}
+
+html { -webkit-font-smoothing: antialiased; }
+
+body {
+  font-family: 'Geist', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg);
+  color: var(--text-1);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* ─── NAV ─────────────────────────────────────────────── */
+nav {
+  height: 52px;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: rgba(10,10,10,0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.logo {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--text-1);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.logo-mark {
+  width: 20px;
+  height: 20px;
+  background: var(--text-1);
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo-mark svg {
+  width: 11px;
+  height: 11px;
+  color: var(--bg);
+}
+
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+
+
+/* ─── MAIN ────────────────────────────────────────────── */
+main {
+  flex: 1;
+  max-width: 800px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 80px 24px 80px;
+}
+
+/* ─── HERO ────────────────────────────────────────────── */
+.hero {
+  margin-bottom: 56px;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-3);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 24px;
+}
+
+.eyebrow-dot {
+  width: 5px;
+  height: 5px;
+  background: var(--green);
+  border-radius: 50%;
+  animation: pulse 2.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.hero h1 {
+  font-size: clamp(36px, 5.5vw, 56px);
+  font-weight: 600;
+  letter-spacing: -0.05em;
+  line-height: 1.05;
+  color: var(--text-1);
+  margin-bottom: 18px;
+}
+
+.hero h1 em {
+  font-style: normal;
+  color: var(--text-2);
+}
+
+.hero p {
+  font-size: 15px;
+  color: var(--text-2);
+  font-weight: 400;
+  line-height: 1.7;
+  max-width: 460px;
+}
+
+/* ─── UPLOAD GRID ─────────────────────────────────────── */
+.upload-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.upload-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--surface);
+  transition: border-color 0.2s;
+}
+
+.upload-card.filled  { border-color: rgba(34,197,94,0.3); }
+.upload-card.missing { border-color: rgba(239,68,68,0.5); }
+
+.card-head {
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.card-title {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-1);
+  letter-spacing: -0.01em;
+}
+
+.card-pill {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-3);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  padding: 2px 8px;
+  border-radius: 100px;
+}
+
+.drop-zone {
+  position: relative;
+  height: 260px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+  overflow: hidden;
+}
+
+.drop-zone:hover .drop-inner { opacity: 1; }
+.drop-zone:hover { background: rgba(255,255,255,0.015); }
+
+.drop-zone input[type="file"] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+}
+
+.drop-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+  text-align: center;
+  opacity: 0.7;
+  transition: opacity 0.15s;
+}
+
+.drop-icon {
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-2);
+  margin-bottom: 2px;
+}
+.drop-icon svg { width: 16px; height: 16px; color: var(--text-3); }
+
+.drop-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-2);
+}
+.drop-sub {
+  font-size: 11px;
+  color: var(--text-3);
+}
+
+.card-img {
+  width: 100%;
+  height: 260px;
+  object-fit: cover;
+  display: none;
+}
+.card-img.on { display: block; }
+
+.card-foot {
+  display: none;
+  padding: 0;
+  border-top: 1px solid var(--border);
+}
+.card-foot.on { display: block; }
+
+.change-btn {
+  width: 100%;
+  padding: 8px;
+  background: none;
+  border: none;
+  font-family: 'Geist', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-3);
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+  letter-spacing: -0.01em;
+}
+.change-btn:hover { color: var(--text-1); background: rgba(255,255,255,0.03); }
+
+/* ─── BOTTOM ROW ──────────────────────────────────────── */
+.bottom-row {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.filename-wrap {
+  flex: 1;
+  height: 44px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  gap: 8px;
+  transition: border-color 0.15s;
+}
+.filename-wrap:focus-within { border-color: var(--border-2); }
+
+.filename-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-3);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.filename-wrap input {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  font-family: 'Geist', sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--text-1);
+  min-width: 0;
+}
+.filename-wrap input::placeholder { color: var(--text-3); }
+
+.filename-ext {
+  font-size: 12px;
+  color: var(--text-3);
+  flex-shrink: 0;
+}
+
+/* ─── GENERATE ────────────────────────────────────────── */
+.gen-btn {
+  height: 44px;
+  padding: 0 20px;
+  background: var(--text-1);
+  color: var(--bg);
+  border: none;
+  border-radius: var(--radius);
+  font-family: 'Geist', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: opacity 0.15s, transform 0.1s;
+}
+.gen-btn:hover:not(:disabled) { opacity: 0.9; transform: translateY(-1px); }
+.gen-btn:active:not(:disabled) { transform: translateY(0); }
+.gen-btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+.gen-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+/* ─── TOAST ───────────────────────────────────────────── */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(10px);
+  background: var(--surface-2);
+  border: 1px solid var(--border-2);
+  color: var(--text-1);
+  padding: 9px 18px;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 500;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s, transform 0.2s;
+  white-space: nowrap;
+  z-index: 999;
+  letter-spacing: -0.01em;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ─── FOOTER ──────────────────────────────────────────── */
+footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+footer p {
+  font-size: 11px;
+  color: var(--text-3);
+}
+
+/* ─── RESPONSIVE ──────────────────────────────────────── */
+@media (max-width: 580px) {
+  main { padding: 40px 16px 64px; }
+  nav { padding: 0 16px; }
+  .upload-grid { grid-template-columns: 1fr; }
+  .bottom-row { flex-direction: column; }
+  .gen-btn { width: 100%; justify-content: center; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">
+    <div class="logo-mark">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+        <path d="M14 2v6h6"/>
+      </svg>
+    </div>
+    PrankPDF
+  </div>
+  <div class="nav-right">
+  </div>
+</nav>
+
+<main>
+
+  <div class="hero">
+    <div class="eyebrow">
+      <span class="eyebrow-dot"></span>
+      WhatsApp prank generator
+    </div>
+    <h1>A PDF they'll open.<br><em>Not what they expect.</em></h1>
+    <p>Upload a decoy image for the WhatsApp thumbnail, and a surprise image for when they actually open it.</p>
+  </div>
+
+  <div class="upload-grid">
+
+    <div class="upload-card" id="card-preview">
+      <div class="card-head">
+        <span class="card-title">Preview image</span>
+        <span class="card-pill">WhatsApp thumbnail</span>
+      </div>
+      <div class="drop-zone" id="zone-preview">
+        <input type="file" accept="image/*" id="input-preview" onchange="handleUpload('preview',event)">
+        <div class="drop-inner" id="inner-preview">
+          <div class="drop-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <rect x="3" y="3" width="18" height="18" rx="2"/>
+              <circle cx="8.5" cy="8.5" r="1.5"/>
+              <path d="M21 15l-5-5L5 21"/>
+            </svg>
+          </div>
+          <span class="drop-label">Click to upload</span>
+          <span class="drop-sub">JPG, PNG, WEBP</span>
+        </div>
+        <img class="card-img" id="img-preview" alt="">
+      </div>
+      <div class="card-foot" id="foot-preview">
+        <button class="change-btn" onclick="triggerInput('preview')">Change image</button>
+      </div>
+    </div>
+
+    <div class="upload-card" id="card-surprise">
+      <div class="card-head">
+        <span class="card-title">Surprise image</span>
+        <span class="card-pill">Seen when opened</span>
+      </div>
+      <div class="drop-zone" id="zone-surprise">
+        <input type="file" accept="image/*" id="input-surprise" onchange="handleUpload('surprise',event)">
+        <div class="drop-inner" id="inner-surprise">
+          <div class="drop-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01"/>
+            </svg>
+          </div>
+          <span class="drop-label">Click to upload</span>
+          <span class="drop-sub">JPG, PNG, WEBP</span>
+        </div>
+        <img class="card-img" id="img-surprise" alt="">
+      </div>
+      <div class="card-foot" id="foot-surprise">
+        <button class="change-btn" onclick="triggerInput('surprise')">Change image</button>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="bottom-row">
+    <div class="filename-wrap">
+      <span class="filename-label">Filename</span>
+      <input type="text" id="filename" value="Urgent_Meeting_Notes" placeholder="your_filename">
+      <span class="filename-ext">.pdf</span>
+    </div>
+    <button class="gen-btn" id="gen-btn" onclick="generate()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+      </svg>
+      Generate PDF
+    </button>
+  </div>
+
+</main>
+
+<footer>
+  <p>Everything runs in your browser — nothing is uploaded to any server.</p>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const state = { preview: null, surprise: null };
+
+function handleUpload(slot, e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    state[slot] = ev.target.result;
+    const img   = document.getElementById('img-' + slot);
+    const inner = document.getElementById('inner-' + slot);
+    const card  = document.getElementById('card-' + slot);
+    const foot  = document.getElementById('foot-' + slot);
+    const input = document.getElementById('input-' + slot);
+    img.src = ev.target.result;
+    img.classList.add('on');
+    inner.style.display = 'none';
+    card.classList.remove('missing');
+    card.classList.add('filled');
+    foot.classList.add('on');
+    input.style.pointerEvents = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+
+function triggerInput(slot) {
+  const input = document.getElementById('input-' + slot);
+  input.style.pointerEvents = 'auto';
+  input.click();
+}
+
+async function generate() {
+  let valid = true;
+  ['preview','surprise'].forEach(slot => {
+    const card = document.getElementById('card-' + slot);
+    if (!state[slot]) { card.classList.add('missing'); valid = false; }
+    else card.classList.remove('missing');
+  });
+  if (!valid) { showToast('Upload both images first'); return; }
+
+  const btn = document.getElementById('gen-btn');
+  btn.disabled = true;
+  btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> Generating…`;
+
+  try {
+    const { jsPDF } = window.jspdf;
+    const filename = (document.getElementById('filename').value.trim().replace(/\s+/g,'_') || 'prank') + '.pdf';
+    const pageW = 210, pageH = 297;
+    const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+
+    const getDims = src => new Promise(res => {
+      const im = new Image();
+      im.onload = () => res({ w: im.naturalWidth, h: im.naturalHeight });
+      im.src = src;
+    });
+
+    const pDims = await getDims(state.preview);
+
+    // Preview: 30% of page height — sweet spot for WhatsApp thumbnail
+    const maxPreviewH = pageH * 0.30;
+    const pNaturalH   = pageW * (pDims.h / pDims.w);
+    const pImgH       = Math.min(pNaturalH, maxPreviewH);
+
+    // Surprise: fills the rest
+    const sY = pImgH;
+    const sH = pageH - sY;
+
+    const fmt = url => {
+      const t = url.split(';')[0].split('/')[1].toUpperCase();
+      return (t === 'JPG' || t === 'JPEG') ? 'JPEG' : t === 'PNG' ? 'PNG' : 'JPEG';
+    };
+
+    doc.addImage(state.preview,  fmt(state.preview),  0, 0,  pageW, pImgH, 'p', 'FAST');
+    doc.addImage(state.surprise, fmt(state.surprise),  0, sY, pageW, sH,    's', 'FAST');
+
+    doc.save(filename);
+    showToast('Downloaded — go send it 😄');
+  } catch(err) {
+    console.error(err);
+    showToast('Error: ' + err.message);
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg> Generate PDF`;
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+</script>
+</body>
+</html>
